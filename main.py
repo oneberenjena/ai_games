@@ -10,29 +10,44 @@ def main():
 	fpsClock = pygame.time.Clock() # Permite que el juego corra a una velocidad 2normal"
 
 	# Configuracion de la ventana y fondo de la pantalla en formato (RGB)
-	VENTANA = pygame.display.set_mode((800, 500), 0, 32)
+	WIDTH = 800
+	HEIGHT = 600
+	VENTANA = pygame.display.set_mode((WIDTH, HEIGHT), 0, 32)
 	pygame.display.set_caption('Badteria - Version beta')
 	WHITE = (255, 255, 255)
 
-	# Se cargan los personajes y se escalan las imagenes - Las coordenadas son: z, x, y
+	# Se cargan los personajes y se escalan las imagenes
 	globuloBlanco = pygame.image.load('blanco.jpg')
 	globuloBlanco = pygame.transform.scale(globuloBlanco, (50, 50))
-	bacteria = pygame.image.load('bacteria.jpg')
-	bacteria = pygame.transform.scale(bacteria, (50, 50))
+	badteria = pygame.image.load('bacteria.jpg')
+	badteria = pygame.transform.scale(badteria, (50, 50))
 	
-	# Se crea la instancia de "character" y "target" respectivamente
-	gb = Kinematic(np.array([[10],[10],[1]]), 1.5)
-	b = Kinematic(np.array([[220],[250],[1]]), 1.0)
+	# Lugares random donde saldran los personajes
+	z1 = random.randint(0,WIDTH) 
+	z2 = random.randint(0,WIDTH)
+	x1 = random.randint(0,HEIGHT)
+	x2 = random.randint(0,HEIGHT)
 
-	# Se define el comportamiento deseado
-	busqueda = KinematicSeek(gb, b)
+	# Se crea la instancia de "character" y "target" respectivamente - Las coordenadas son: z, x, y
+	gb = Kinematic(np.array([[z1],[x1],[1]]), 1.5)
+	bad = Kinematic(np.array([[z2],[x2],[1]]), 1.5)
+
+	# Se define el comportamiento deseado:
+	#
+	#busqueda = KinematicSeek(gb, bad)
+	#huida = KinematicSeek(bad, gb)
+	#
+	#llegar = KinematicArrive(gb, bad)
+	
+	deambular = KinematicWandering(gb)
+
 	time = 0
 
 	while True:
-		print(time)
+		#print(time)
 		VENTANA.fill(WHITE)
 		time += 1
-		""" ESTO PERMITE CAPTURAR TECLAS APENAS SON PRESIONADAS
+		""" ESTO PERMITE CAPTURAR TECLAS APENAS SON PRESIONADAS - DT: Lo dejo por si tenemos que jugar o queremos probar eventos
 		for event in pygame.event.get():
 			# Teclado
 			if event.type == KEYDOWN:
@@ -46,12 +61,24 @@ def main():
 					print("Abajo")
 		"""
 		# Movimiento y actualizacion de posiciones
-		conduccion = busqueda.getSteering()
-		gb.updateKinematic(conduccion, time)
 		
+		## SEEK AND FLEE
+		#acercar = busqueda.getSteering()
+		#alejar = huida.getSteering(False)
+		#gb.updateKinematic(acercar, time)
+		#bad.updateKinematic(alejar, time)
+
+		## ARRIVE - DT: Da peos con maxSpeed > 0.1 si el radio es <= 4.0 (Se vuelve loco tipo Seek) 
+		#llegada = llegar.getSteering()
+		#gb.updateKinematic(llegada, time)
+		
+		## WANDER
+		deambulando = deambular.getSteering()
+		gb.updateKinematic(deambulando, time)
+
 		# Actualizacion de imagenes en la ventana de juego
 		VENTANA.blit(globuloBlanco, (gb.position[0][0], gb.position[1][0]))
-		VENTANA.blit(bacteria, (b.position[0][0], b.position[1][0]))
+		VENTANA.blit(badteria, (bad.position[0][0], bad.position[1][0]))
 
 		for event in pygame.event.get():
 			# Salir del programa
