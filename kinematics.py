@@ -9,78 +9,96 @@ class Static():
 
 class Kinematic():
 	"""docstring for Kinematic"""
-	def __init__(self, position=np.zeros((1,3)), orientation=0.0, velocity=np.zeros((1,3)), rotation=0.0):
+	def __init__(self, position = np.zeros((3,1)), orientation = 0.0, velocity = np.zeros((3,1)), rotation = 0.0):
 		self.position = position
 		self.orientation = orientation
 		self.velocity = velocity
 		self.rotation = rotation
 
-	def orientationAsVector():
+	def orientationAsVector(self):
 		return np.array([[np.sin(self.orientation)],[np.cos(self.orientation)]])
 
-	def update(steering, time):
-		
+	def updateKinematic(self, steering, time):
 		#Actualizar la posicion y la orientacion
-		self.position = self.velocity*time
-		self.orientation = self.rotation*time
-
+		np.add(self.position, self.velocity * time, out = self.position, casting = "unsafe")
+		self.orientation += self.rotation * time
 		#Actualizar velocidad y rotacion
-		self.velocity = steering.linear*time
-		self.orientation = steering.angular*time
+		self.velocity = steering.velocity
+		self.rotation = steering.rotation
 
-	def getNewOrientation(currentOrientation, velocity):
-
+	def updateSteering(self, steering, time):
+		#Actualizar la posicion y la orientacion
+		np.add(self.position, self.velocity * time, out = self.position, casting = "unsafe")
+		self.orientation += self.rotation * time
+		#Actualizar velocidad y rotacion
+		self.velocity += steering.linear * time
+		self.rotation += steering.angular * time
+	
+	def getNewOrientation(self, velocity):
 		#Si el agente va con una velocidad
 		if np.linalg.norm(self.velocity) > 0:
-			
-			# Retornamos la orientacion
+			# Calculate orientation using an arc tangent of the velocity components.
 			return np.arctan2(-self.velocity[0], self.velocity[1])
-
 		# Si no hay velocidad retornamos la orientacion actual
-		else:
-			return currentOrientation
+		else: 
+			return self.orientation
+
+	"""
+	def update(self,steering, time):
+		
+		#Actualizar la posicion y la orientacion
+		#self.position = self.velocity*time
+		np.add(self.position, self.velocity * time, out = self.position, casting = "unsafe")
+		self.orientation = self.rotation * time
+
+		#Actualizar velocidad y rotacion
+		self.velocity = steering.linear * time
+		self.orientation = steering.angular * time
+	"""
 
 class SteeringOutput():
 	"""docstring for SteeringOutput"""
-	def __init__(self, linear=np.zeros((1,3)), angular=0.0):
+	def __init__(self, linear = np.zeros((3,1)), angular = 0.0):
 		self.linear = linear
 		self.angular = angular
 		
 class KinematicSteeringOutput():
 	"""docstring for KinematicSteeringOutput"""
-	def __init__(self, velocity=np.zeros((1,3)), rotation=0.0):
+	def __init__(self, velocity = np.zeros((3,1)), rotation = 0.0): 
 		self.velocity = velocity
 		self.rotation = rotation
 						
 class KinematicSeek():
 	"""docstring for KinematicSeek"""
-	def __init__(self, character, target, maxSpeed=0.0):
+	def __init__(self, character, target, maxSpeed = 0.5):
 		# Datos estaticos del agente y su objetivo
 		self.character = character
 		self.target = target
 		# Velocidad maxima que puede alcanzar el agente
 		self.maxSpeed = maxSpeed
 
-	def getSteering():
+	def getSteering(self):
 		# Estructura de salida
 		steering = KinematicSteeringOutput()
 
 		# Se obtiene la direccion del objetivo
-		steering.velocity = target.position - character.position
+		steering.velocity = self.target.position - self.character.position
 
 		# La velocidad va en esta direccion a toda marcha
 		# normalize(steering.velocity[:np.newaxis], axis=0).ravel()
-		steering.velocity /= np.linalg.norm(steering.velocity)
-		steering.velocity *= maxSpeed
+		if np.linalg.norm(steering.velocity) > 0:
+			steering.velocity =  steering.velocity / np.linalg.norm(steering.velocity)
+		#steering.velocity /= np.linalg.norm(steering.velocity)
+		steering.velocity *= self.maxSpeed
 
 		# Se observa hacia la direccion que se quiere mover
-		character.orientation = getNewOrientation(character.orientation, steering.velocity)
+		self.character.orientation = self.character.getNewOrientation(steering.velocity)
 
 		# Retornamos la direccion
 		steering.rotation = 0.0
 		return steering
 
-	def flee():
+	def flee(self):
 		# Estructura de salida
 		steering = KinematicSteeringOutput()
 
@@ -112,7 +130,7 @@ class KinematicArrive():
 		# El tiempo que tardara en llegar al objetivo (constante)
 		self.timeToTarget = timeToTarget
 
-	def getSteering():
+	def getSteering(self):
 		# Estructura de salida
 		steering = KinematicSteeringOutput()
 
@@ -147,7 +165,7 @@ class KinematicWandering():
 		self.maxSpeed = maxSpeed
 		self.maxRotation = maxRotation
 
-	def getSteering():
+	def getSteering(self):
 		# Estructura de salida
 		steering = KinematicSteeringOutput()
 		# Obtener la velocidad del vector de orientacion
