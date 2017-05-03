@@ -85,7 +85,7 @@ def main():
 
 		## DYNAMIC ARRIVE
 		arriving = llegarDinamico.getSteering()
-		gb.updateSteering(arriving, time)
+		gb.updateSteering(arriving, time)	
 
 		# Actualizacion de imagenes en la ventana de juego
 		VENTANA.blit(globuloBlanco, (gb.position[0][0], gb.position[1][0]))

@@ -22,6 +22,12 @@ class Kinematic():
 		#Actualizar la posicion y la orientacion
 		np.add(self.position, self.velocity * time, out = self.position, casting = "unsafe")
 		self.orientation += self.rotation * time
+
+		if steering == None:
+			self.velocity = 0.0
+			self.rotation = 0.0
+			return
+
 		#Actualizar velocidad y rotacion
 		self.velocity = steering.velocity
 		self.rotation = steering.rotation
@@ -34,6 +40,11 @@ class Kinematic():
 		#Actualizar la posicion y la orientacion
 		np.add(self.position, self.velocity * time, out = self.position, casting = "unsafe")
 		self.orientation += self.rotation * time
+
+		if steering == None:
+			self.velocity = 0.0
+			self.rotation = 0.0
+			return
 		#Actualizar velocidad y rotacion
 		self.velocity += steering.linear * time
 		self.rotation += steering.angular * time
@@ -41,6 +52,9 @@ class Kinematic():
 		if np.linalg.norm(self.velocity) > maxSpeed:
 			self.velocity = self.velocity / np.linalg.norm(self.velocity)
 			self.velocity *= maxSpeed
+
+		if np.linalg.norm(self.velocity) == 0.0:
+			self.velocity = np.zeros((3,1))
 	
 	def getNewOrientation(self, velocity):
 		#Si el agente va con una velocidad
@@ -134,8 +148,7 @@ class KinematicArrive():
 			# No podemos retornar la direccion
 			# retornabamos None, ahora hacemos que la velocidad desaparezca para 
 			# frenar al character y emular la llegada correctamente
-			steering.velocity = 0.0
-			return steering
+			return None
 
 		# Para movernos hacia el objetivo. Se quiere hacer en
 		# timeToTarget segundos 
@@ -202,7 +215,7 @@ class Seek():
 
 class Arrive():
 	"""docstring for Arrive"""
-	def __init__(self, character, target, maxAcceleration=0.01, maxSpeed=0.05, targetRadius=5., slowRadius=10., timeToTarget=2.):
+	def __init__(self, character, target, maxAcceleration=0.05, maxSpeed=0.05, targetRadius=20., slowRadius=80., timeToTarget=120.):
 		self.character = character
 		self.target = target
 		self.maxAcceleration = maxAcceleration
@@ -220,15 +233,15 @@ class Arrive():
 
 		# Si estamos en el radio del objetivo, devolvemos direccion nula (llegamos)
 		if distance < self.targetRadius:
-			steering.linear = np.zeros((3,1))
-			steering.angular = 0.0
-			return steering
+			# steering.angular = 0.0
+			return None
 
 		# Si estamos fuera del radio de frenado, aceleramos
 		if distance > self.slowRadius:
 			targetSpeed = self.maxSpeed
 		# Caso contrario escalamos la velocidad  
 		else:
+			print("getting closer")
 			targetSpeed = self.maxSpeed*distance / self.slowRadius
 
 		# Calculamos el vector velocidad del target que combina la velocidad y la direccion
