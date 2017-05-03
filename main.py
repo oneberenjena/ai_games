@@ -34,12 +34,15 @@ def main():
 
 	# Se define el comportamiento deseado:
 	#
-	#busqueda = KinematicSeek(gb, bad)
-	#huida = KinematicSeek(bad, gb)
-	#
-	#llegar = KinematicArrive(gb, bad)
+	busqueda = KinematicSeek(gb, bad)
+	huida = KinematicSeek(bad, gb)
+	
+	llegar = KinematicArrive(gb, bad)
 	
 	deambular = KinematicWandering(gb)
+
+	busquedaDinamica = Seek(gb, bad)
+	llegarDinamico = Arrive(gb, bad)
 
 	time = 0
 
@@ -63,18 +66,26 @@ def main():
 		# Movimiento y actualizacion de posiciones
 		
 		## SEEK AND FLEE
-		#acercar = busqueda.getSteering()
-		#alejar = huida.getSteering(False)
-		#gb.updateKinematic(acercar, time)
-		#bad.updateKinematic(alejar, time)
+		# acercar = busqueda.getSteering()
+		# alejar = huida.getSteering(False)
+		# gb.updateKinematic(acercar, time)
+		# bad.updateKinematic(alejar, time)
 
 		## ARRIVE - DT: Da peos con maxSpeed > 0.1 si el radio es <= 4.0 (Se vuelve loco tipo Seek) 
-		#llegada = llegar.getSteering()
-		#gb.updateKinematic(llegada, time)
+		# llegada = llegar.getSteering()
+		# gb.updateKinematic(llegada, time)
 		
 		## WANDER
-		deambulando = deambular.getSteering()
-		gb.updateKinematic(deambulando, time)
+		# deambulando = deambular.getSteering()
+		# gb.updateKinematic(deambulando, time)
+
+		## DYNAMIC SEEK
+		# seeking = busquedaDinamica.getSteering()
+		# gb.updateSteering(seeking, time)
+
+		## DYNAMIC ARRIVE
+		arriving = llegarDinamico.getSteering()
+		gb.updateSteering(arriving, time)
 
 		# Actualizacion de imagenes en la ventana de juego
 		VENTANA.blit(globuloBlanco, (gb.position[0][0], gb.position[1][0]))
